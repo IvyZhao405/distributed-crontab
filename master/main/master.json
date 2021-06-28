@@ -1,0 +1,19 @@
+{
+  "API service api": "CRUD service",
+  "apiPort": 8070,
+
+  "API service read timeout": "millisecond",
+  "apiReadTimeout": 5000,
+
+  "API service write timeout": "millisecond",
+  "apiWriteTimeout": 5000,
+
+  "etcd cluster endpoints": "need multiple to avoid single point of failure",
+  "etcdEndpoints": ["127.0.0.1:2379"],
+
+  "etcd connection timeout": "millisecond",
+  "etcdDialTimeout": 5000,
+
+  "web page root": "front end web page root",
+  "webroot": "./webroot"
+}

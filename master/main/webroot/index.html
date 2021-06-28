@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Golang Distributed Crontab</title>
+    <!-- bootstrap + jquery -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <link rel="shortcut icon" href="#">
+</head>
+<body>
+    <div class="container-fluid">
+        <!--header-->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="page-header">
+                    <h1>Management Console<small>Golang Distributed Crontab</small></h1>
+                </div>
+            </div>
+        </div>
+        <!--buttons-->
+        <div class="row">
+            <div class="col-md-12">
+                <button type="button" class="btn btn-primary" id="new-job">New Job</button>
+            </div>
+        </div>
+        <!--job list-->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default" style="margin-top: 20px">
+                    <div class="panel-body">
+                        <table id="job-list" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Job Name</th>
+                                    <th>Shell Command</th>
+                                    <th>Cron Expression</th>
+                                    <th>Edit Job</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- position: fixed -->
+    <div id="edit-modal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Edit Job</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="edit-name">Job Name</label>
+                            <input type="text" class="form-control" id="edit-name" placeholder="Job Name">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-command">Shell Command</label>
+                            <input type="text" class="form-control" id="edit-command" placeholder="Shell Command">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-cronExpr">Cron Expression</label>
+                            <input type="text" class="form-control" id="edit-cronExpr" placeholder="Cron Expression">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save-job">Save</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    <script>
+        $(document).ready(function(){
+            //1. relate button events to handling function
+            //DOM event bubbling to ancestor and capturing
+
+            //edit job
+            $("#job-list").on("click", ".edit-job", function(event){
+                //get current job info and put in edit form
+                $('#edit-name').val($(this).parents('tr').children('.job-name').text())
+                $('#edit-command').val($(this).parents('tr').children('.job-command').text())
+                $('#edit-cronExpr').val($(this).parents('tr').children('.job-cronExpr').text())
+
+                //show modification window
+                $('#edit-modal').modal('show')
+            })
+            //delete job
+            $("#job-list").on("click", ".delete-job", function(event){
+                var jobName = $(this).parents("tr").children(".job-name").text()
+                $.ajax({
+                    url:'/job/delete',
+                    type:'post',
+                    dataType:'json',
+                    data:{name:jobName},
+                    complete:function (){
+                        window.location.reload()
+                    }
+                })
+            })
+            //kill job
+            $("#job-list").on("click", ".kill-job", function(event){
+                var jobName = $(this).parents("tr").children(".job-name").text()
+                $.ajax({
+                    url:'/job/kill',
+                    type:'post',
+                    dataType:'json',
+                    data:{name:jobName},
+                    complete:function (){
+                        window.location.reload()
+                    }
+                })
+            })
+            //save modified job
+            $('#save-job').on("click", function() {
+                var jobInfo = {name:$('#edit-name').val(),command:$('#edit-command').val(),cronExpr:$('#edit-cronExpr').val()}
+                $.ajax({
+                    url:'/job/save',
+                    type:'post',
+                    dataType:'json',
+                    data:{job:JSON.stringify(jobInfo)},
+                    complete:function (){
+                       window.location.reload()
+                    }
+                })
+            })
+            //create new job
+            $('#new-job').on("click", function() {
+                //get current job info and put in edit form
+                $('#edit-name').val("")
+                $('#edit-command').val("")
+                $('#edit-cronExpr').val("")
+
+                //show modification window
+                $('#edit-modal').modal('show')
+            })
+            //2. function for refreshing job list
+            function rebuildJobList(){
+                ///job/list
+                $.ajax({
+                    url: '/job/list',
+                    dataType: 'json',
+                    success:function (resp){
+                        if(resp.errno != 0) { //error
+                            return
+                        }
+                        //job list
+                        var jobList = resp.data
+                        //clean list
+                        $('#job-list tbody').empty()
+                        //iterate job, fill table
+                        for (var i = 0; i < jobList.length; ++i) {
+                            var job = jobList[i];
+                            var tr = $("<tr>")
+                            tr.append($('<td class="job-name">').html(job.name))
+                            tr.append($('<td class="job-command">').html(job.command))
+                            tr.append($('<td class="job-cronExpr">').html(job.cronExpr))
+                            var toolbar = $('<div class="btn-toolbar">')
+                                .append('<button class="btn btn-info edit-job">Edit </button>')
+                                .append('<button class="btn btn-danger delete-job">Delete</button>')
+                                .append('<button class="btn btn-warning kill-job">Kill</button>')
+                            tr.append($('<td>').append(toolbar))
+                            $("#job-list tbody").append(tr)
+                        }
+                    }
+                })
+            }
+            rebuildJobList()
+        })
+    </script>
+</body>
+</html>
