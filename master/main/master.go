@@ -51,10 +51,6 @@ func main() {
 	for {
 		time.Sleep(1 * time.Second)
 	}
-	//normal exit
-	for {
-		time.Sleep(1 * time.Second)
-	}
 	return
 ERR:
 	fmt.Println(err)

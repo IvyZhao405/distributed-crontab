@@ -1,0 +1,7 @@
+{
+  "etcd cluster endpoints": "need multiple to avoid single point of failure",
+  "etcdEndpoints": ["127.0.0.1:2379"],
+
+  "etcd connection timeout": "millisecond",
+  "etcdDialTimeout": 5000
+}
