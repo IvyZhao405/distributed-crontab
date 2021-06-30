@@ -40,6 +40,14 @@ func main() {
 		goto ERR
 	}
 
+	if err = worker.InitRegister(); err != nil {
+		goto ERR
+	}
+
+	if err = worker.InitLogSink(); err != nil {
+		goto ERR
+	}
+
 	//start executor
 	if err = worker.InitExecutor(); err != nil {
 		goto ERR

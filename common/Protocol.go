@@ -53,16 +53,29 @@ type JobExecuteResult struct {
 
 //job execution log
 type JobLog struct {
-	JobName string `bson:"jobName"` //job name
-	Command string `bson:"command"` //shell command
-	Err string `bson:"err"` // error
-	Output string `bson:"output"`//script output
-	PlanTime int64 `bson:"planTime"` //plan start time
-	ScheduleTime int64 `bson:"scheduleTime"` //actual scheduled time
-	StartTime int64 `bson:"startTime"` //job execution start time
-	EndTime int64 `bson:"endTime"` //job execution end time
+	JobName string `json:"jobName" bson:"jobName"` //job name
+	Command string `json:"command" bson:"command"` //shell command
+	Err string `json:"err" bson:"err"` // error
+	Output string `json:"output" bson:"output"`//script output
+	PlanTime int64 `json:"planTime" bson:"planTime"` //plan start time
+	ScheduleTime int64 `json:"scheduleTime" bson:"scheduleTime"` //actual scheduled time
+	StartTime int64 `json:"startTime" bson:"startTime"` //job execution start time
+	EndTime int64 `json:"endTime" bson:"endTime"` //job execution end time
 }
 
+type LogBatch struct {
+	Logs []interface{} //multiple logs
+}
+
+//mongo log filter condition
+type JobLogFilter struct {
+	JobName string `bson:"jobName"`
+}
+
+//job log sorting rule
+type SortLogByStartTime struct {
+	SortOrder int `bson:"startTime"` //{startTime:-1}
+}
 
 //resposne method
 func BuildResponse(errno int, msg string, data interface{}) (resp []byte, err error){
@@ -140,4 +153,9 @@ func BuildJobExecuteInfo(jobSchedulePlan *JobSchedulePlan) (jobExecuteInfo *JobE
 	}
 	jobExecuteInfo.CancelCtx, jobExecuteInfo.CancelFunc = context.WithCancel(context.TODO())
 	return
+}
+
+//get worker's ip
+func ExtractWorkerIP(regKey string) (string) {
+	return strings.TrimPrefix(regKey, JOB_WORKER_DIR)
 }

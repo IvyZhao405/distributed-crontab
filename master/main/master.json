@@ -15,5 +15,11 @@
   "etcdDialTimeout": 5000,
 
   "web page root": "front end web page root",
-  "webroot": "./webroot"
+  "webroot": "./webroot",
+
+  "mongodb address": "mongodb URL",
+  "mongodbUri": "mongodb://localhost:27017",
+
+  "mongodb connection timeout": "millisecond",
+  "mongodbConnectTimeout": 5000
 }

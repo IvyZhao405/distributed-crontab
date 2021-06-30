@@ -39,6 +39,16 @@ func main() {
 		goto ERR
 	}
 
+	//init worker finding service
+	if err = master.InitWorkerMgr(); err != nil {
+		goto ERR
+	}
+
+	//init log manager
+	if err = master.InitLogMgr(); err != nil {
+		goto ERR
+	}
+
 	//init job manager
 	if err = master.InitJobMgr(); err != nil {
 		goto ERR

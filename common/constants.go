@@ -7,6 +7,9 @@ const (
 	//job force kill directory
 	JOB_KILLER_DIR = "/cron/killer/"
 
+	//job register directory
+	JOB_WORKER_DIR = "/cron/lock/"
+
 	//Save job event
 	JOB_EVENT_SAVE = 1
 
@@ -18,5 +21,4 @@ const (
 
 	//job lock directory
 	JOB_LOCK_DIR = "/cron/lock/"
-
 )

@@ -64,7 +64,7 @@ func(jobLock *JobLock) TryLock() (err error) {
 				}
 			}
 		}
-	END:
+		END:
 	}()
 	//4. create txn transaction
 	txn = jobLock.kv.Txn(context.TODO())
@@ -86,6 +86,7 @@ func(jobLock *JobLock) TryLock() (err error) {
 	//success
 	jobLock.leaseId = leaseId
 	jobLock.cancelFunc = cancelFunc
+	jobLock.isLocked = true
 	return
 
 FAIL:

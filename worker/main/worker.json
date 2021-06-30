@@ -3,5 +3,17 @@
   "etcdEndpoints": ["127.0.0.1:2379"],
 
   "etcd connection timeout": "millisecond",
-  "etcdDialTimeout": 5000
+  "etcdDialTimeout": 5000,
+
+  "mongodb address": "mongodb URL",
+  "mongodbUri": "mongodb://localhost:27017",
+
+  "mongodb connection timeout": "millisecond",
+  "mongodbConnectTimeout": 5000,
+
+  "Log batch size": "to avoid too frequent mongo connection, save logs in batch",
+  "jobLogBatchSize": 100,
+
+  "job log commit auto submit timeout": "if batch size is not full, submit log batch anyway",
+  "jobLogCommitTimeout": 1000
 }

@@ -24,6 +24,7 @@
         <div class="row">
             <div class="col-md-12">
                 <button type="button" class="btn btn-primary" id="new-job">New Job</button>
+                <button type="button" class="btn btn-success" id="list-worker">Healthy Nodes</button>
             </div>
         </div>
         <!--job list-->
@@ -79,8 +80,89 @@
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
+    <!--  log modal -->
+    <div id="log-modal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Job Log</h4>
+                </div>
+                <div class="modal-body">
+                    <table id="log-list" class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>shell command</th>
+                            <th>error reason</th>
+                            <th>shell output</th>
+                            <th>planned time</th>
+                            <th>scheduled time</th>
+                            <th>start time</th>
+                            <th>finish time</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <!--  healthy node modal -->
+    <div id="worker-modal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Healthy Node</h4>
+                </div>
+                <div class="modal-body">
+                    <table id="worker-list" class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Node IP</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
     <script>
-        $(document).ready(function(){
+        $(document).ready(function() {
+            //format time
+            function timeFormat(datetime){
+                //padding 0 as prefix: 2022-02-21 08:34:01.245
+                function paddingNum(num, n){
+                    var len = num.toString().length
+                    while (len < n) {
+                        num = '0' + num
+                        len++
+                    }
+                    return num
+                }
+                var date = new Date(datetime)
+                var year = date.getFullYear()
+                var month = paddingNum(date.getMonth() + 1, 2)
+                var day = paddingNum(date.getDate(), 2)
+                var hour = paddingNum(date.getHours(), 2)
+                var minute = paddingNum(date.getMinutes(), 2)
+                var second = paddingNum(date.getSeconds(), 2)
+                var millisecond = paddingNum(date.getMilliseconds(), 3)
+                return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second + "." + millisecond
+            }
             //1. relate button events to handling function
             //DOM event bubbling to ancestor and capturing
 
@@ -143,6 +225,68 @@
                 //show modification window
                 $('#edit-modal').modal('show')
             })
+            //check job job
+            $("#job-list").on("click", ".log-job", function(event){
+                //empty log list
+                $('#log-list tbody').empty()
+                //get job name
+                var jobName = $(this).parents('tr').children('.job-name').text()
+
+                //send request to /job/log
+                $.ajax({
+                    url: "/job/log",
+                    dataType:'json',
+                    data:{name:jobName},
+                    success:function (resp) {
+                        if (resp.errno != 0) {
+                            return
+                        }
+                        //iterate log list
+                        var logList = resp.data
+                        for (var i = 0; i < logList.length; ++i) {
+                            var log = logList[i]
+                            var tr = $('<tr>')
+                            tr.append($('<td>').html(log.command))
+                            tr.append($('<td>').html(log.err))
+                            tr.append($('<td>').html(log.output))
+                            tr.append($('<td>').html(timeFormat(log.planTime)))
+                            tr.append($('<td>').html(timeFormat(log.scheduleTime)))
+                            tr.append($('<td>').html(timeFormat(log.startTime)))
+                            tr.append($('<td>').html(timeFormat(log.endTime)))
+                            console.log(tr)
+                            $('#log-list tbody').append(tr)
+                        }
+                    }
+                })
+                //show modification window
+                $('#log-modal').modal('show')
+            })
+            //healthy node button
+            $('#list-worker').on('click', function() {
+                //clean current table
+                $('#worker-list tbody').empty()
+                //get node list
+                $.ajax({
+                    url:'/worker/list',
+                    dataType:'json',
+                    success:function(resp){
+                        if(resp.errno != 0){
+                            return
+                        }
+                        var workerList = resp.data
+                        //iterate every ip and add to worker modal table
+                        for (var i = 0; i < workerList.length; ++i) {
+                            var workerIP = workerList[i]
+                            var tr = $('<tr>')
+                            tr.append($('<td>').html(workerIP))
+                            $('#worker-list tbody').append(tr)
+                        }
+                    }
+                })
+                //show node list window
+                $('#worker-modal').modal('show')
+            })
+
             //2. function for refreshing job list
             function rebuildJobList(){
                 ///job/list
@@ -168,6 +312,7 @@
                                 .append('<button class="btn btn-info edit-job">Edit </button>')
                                 .append('<button class="btn btn-danger delete-job">Delete</button>')
                                 .append('<button class="btn btn-warning kill-job">Kill</button>')
+                                .append('<button class="btn btn-success log-job">Log</button>')
                             tr.append($('<td>').append(toolbar))
                             $("#job-list tbody").append(tr)
                         }
