@@ -4,4 +4,4 @@
 This project is a complete distributed crontab solution consists with frontend UI and backend master + worker services. 
 
 ## Architecture
-![distributed crontab](image/distributed-crontab.jpg)
+![distributed crontab](distributed-crontab.png)
